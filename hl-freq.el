@@ -95,26 +95,27 @@
              (funcall func))))
         (buffer-list)))
 
-(defun hl-freq-set-font-lock (keyword)
+(defun hl-freq-set-font-lock-all-buffers (keyword)
   "Set font-lock on KEYWORD."
   (let ((face (hl-freq-face keyword)))
     (hl-freq-map-all-buffers
      (lambda ()
-       (font-lock-add-keywords nil (list (list keyword 'quote face)))))))
+       (font-lock-add-keywords nil (list (list keyword 'quote face)))
+       (funcall font-lock-fontify-buffer-function)))))
 
-(defun hl-freq-remove-font-lock (keyword)
+(defun hl-freq-remove-font-lock-all-buffers (keyword)
   "Remove font-lock from KEYWORD."
   (let ((face (hl-freq-face keyword)))
     (hl-freq-map-all-buffers
      (lambda ()
-       (font-lock-remove-keywords nil (list (list keyword 'quote face)))))))
+       (font-lock-remove-keywords nil (list (list keyword 'quote face)))
+       (funcall font-lock-fontify-buffer-function)))))
 
 (defun hl-freq-apply-font-lock ()
   "Apply font-lock to all keywords."
   (maphash
    (lambda (keyword v)
-     (hl-freq-set-font-lock keyword)
-     (font-lock-flush))
+     (hl-freq-set-font-lock-all-buffers keyword))
    hl-freq-hash-table))
 
 (defun hl-freq-apply-font-lock-current-buffer ()
@@ -142,10 +143,10 @@
 
 (defun hl-freq-set-keyword-n (keyword n)
   "Set N into `hl-freq-hash-table' as count of KEYWORD."
-  (hl-freq-remove-font-lock keyword)
+  (set-text-properties 0 (length keyword) nil keyword)
+  (hl-freq-remove-font-lock-all-buffers keyword)
   (puthash keyword `(:n ,n) hl-freq-hash-table)
-  (hl-freq-set-font-lock keyword)
-  (font-lock-flush))
+  (hl-freq-set-font-lock-all-buffers keyword))
 
 (defun hl-freq-increment-keyword-n (keyword)
   "Increment count of KEYWORD."
@@ -154,9 +155,8 @@
 
 (defun hl-freq-remove-keyword (keyword)
   "Remove KEYWORD from `hl-freq-hash-table'."
-  (hl-freq-remove-font-lock keyword)
-  (remhash keyword hl-freq-hash-table)
-  (font-lock-flush))
+  (hl-freq-remove-font-lock-all-buffers keyword)
+  (remhash keyword hl-freq-hash-table))
 
 (defun hl-freq-list-words ()
   "Return sorted word list."
@@ -213,5 +213,12 @@
 (add-hook 'after-change-major-mode-hook 'hl-freq-apply-font-lock-current-buffer)
 
 (provide 'hl-freq)
+
+;; Local Variables:
+;; byte-compile-warnings: (not cl-functions)
+;; coding: utf-8
+;; indent-tabs-mode: nil
+;; byte-compile-dynamic: t
+;; End:
 
 ;;; hl-freq.el ends here
