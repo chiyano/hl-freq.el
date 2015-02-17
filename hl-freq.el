@@ -41,8 +41,8 @@
   "File to store `hl-freq-hash-table'."
   :group 'hl-freq :type 'integer)
 
-(defcustom hl-freq-font-lock-exclude-modes '(prog-mode)
-  "Modes excluded from font-lock."
+(defcustom hl-freq-font-lock-target-modes '(text-mode)
+  "Fontify target modes."
   :group 'hl-freq :type 'list)
 
 (defface hl-freq-very-low
@@ -87,12 +87,8 @@
   "Map font-lock to all buffers."
   (mapc (lambda (buf)
           (with-current-buffer buf
-            (or
-             (reduce (lambda (result mode)
-                       (or result
-                           (derived-mode-p mode)))
-                     (cons nil hl-freq-font-lock-exclude-modes))
-             (funcall func))))
+            (and (apply 'derived-mode-p hl-freq-font-lock-target-modes)
+                 (funcall func))))
         (buffer-list)))
 
 (defun hl-freq-set-font-lock-all-buffers (keyword)
@@ -123,7 +119,8 @@
 (defun hl-freq-apply-font-lock-current-buffer ()
   "Apply font-lock to current buffer."
   (with-current-buffer (current-buffer)
-    (hl-freq-apply-font-lock-all-keywords)))
+    (and (apply 'derived-mode-p hl-freq-font-lock-target-modes)
+         (hl-freq-apply-font-lock-all-keywords))))
 
 (defun hl-freq-apply-font-lock-all-buffers ()
   "Apply font-lock to all buffers."
