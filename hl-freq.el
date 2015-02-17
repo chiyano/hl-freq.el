@@ -26,11 +26,12 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'pp)
-(require 'cl)
 
 (defgroup hl-freq nil
-  "Options for hl-freq-minor-mode.")
+  "Options for hl-freq-minor-mode."
+  :group 'convenience)
 
 (defgroup hl-freq-faces nil
   "Faces for hl-freq-minor-mode."
@@ -113,7 +114,7 @@
   (maphash
    (lambda (keyword v)
      (hl-freq-set-font-lock keyword)
-     (font-lock-fontify-buffer))
+     (font-lock-flush))
    hl-freq-hash-table))
 
 (defun hl-freq-apply-font-lock-current-buffer ()
@@ -144,7 +145,7 @@
   (hl-freq-remove-font-lock keyword)
   (puthash keyword `(:n ,n) hl-freq-hash-table)
   (hl-freq-set-font-lock keyword)
-  (font-lock-fontify-buffer))
+  (font-lock-flush))
 
 (defun hl-freq-increment-keyword-n (keyword)
   "Increment count of KEYWORD."
@@ -155,9 +156,9 @@
   "Remove KEYWORD from `hl-freq-hash-table'."
   (hl-freq-remove-font-lock keyword)
   (remhash keyword hl-freq-hash-table)
-  (font-lock-fontify-buffer))
+  (font-lock-flush))
 
-(defun hl-freq-word-list ()
+(defun hl-freq-list-words ()
   "Return sorted word list."
   (let ((list))
     (maphash (lambda (k v) (push (cons k v) list)) hl-freq-hash-table)
