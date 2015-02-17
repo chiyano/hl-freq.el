@@ -111,23 +111,25 @@
        (font-lock-remove-keywords nil (list (list keyword 'quote face)))
        (funcall font-lock-fontify-buffer-function)))))
 
-(defun hl-freq-apply-font-lock ()
+(defun hl-freq-apply-font-lock-all-keywords ()
   "Apply font-lock to all keywords."
   (maphash
    (lambda (keyword v)
-     (hl-freq-set-font-lock-all-buffers keyword))
-   hl-freq-hash-table))
+     (let ((face (hl-freq-face keyword)))
+       (font-lock-add-keywords nil (list (list keyword 'quote face)))))
+   hl-freq-hash-table)
+  (funcall font-lock-fontify-buffer-function))
 
 (defun hl-freq-apply-font-lock-current-buffer ()
   "Apply font-lock to current buffer."
   (with-current-buffer (current-buffer)
-    (hl-freq-apply-font-lock)))
+    (hl-freq-apply-font-lock-all-keywords)))
 
 (defun hl-freq-apply-font-lock-all-buffers ()
   "Apply font-lock to all buffers."
   (hl-freq-map-all-buffers
    (lambda ()
-     (hl-freq-apply-font-lock))))
+     (hl-freq-apply-font-lock-all-keywords))))
 
 (defun hl-freq-make-hash-table ()
   "Make hash table."
